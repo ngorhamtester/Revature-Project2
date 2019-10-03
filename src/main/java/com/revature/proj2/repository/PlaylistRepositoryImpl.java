@@ -2,7 +2,11 @@ package com.revature.proj2.repository;
 
 import java.util.List;
 
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import com.revature.proj2.model.Playlist;
+import com.revature.proj2.util.SortifySessionFactory;
 
 /**
  * Revature Proj2: Sortify
@@ -24,8 +28,25 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
 	 */
 	@Override
 	public void insertPlaylist(Playlist playlist) {
-		// TODO Auto-generated method stub
-		
+		//Hibernate Session
+		Session s = null;
+		//Hibernate Transaction
+		Transaction tx = null;
+		try {
+			s = SortifySessionFactory.getSession();
+			tx = s.beginTransaction();
+			//Can use save() or persist() method here
+			//Both methods will persist an object but do not work the same
+			//save() promises to assign unique id and immediately save the object
+			//persist() only guarantees that object will persisted some time befoe session ends
+			s.save(playlist);
+			tx.commit();
+		} catch(HibernateException e) {
+			e.printStackTrace();
+			tx.rollback();
+		} finally {
+			s.close();
+		}
 	}
 	//READ METHODS
 	/**
@@ -47,8 +68,23 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
 	 */
 	@Override
 	public Playlist getPlaylistById(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		Playlist playlist = null;
+		//Hibernate session
+		Session s = null;
+		//Hibernate Transaction
+		Transaction tx = null;
+		try {
+			s = SortifySessionFactory.getSession();
+			tx = s.beginTransaction();
+			playlist = s.get(Playlist.class, id);
+			tx.commit();
+		} catch(HibernateException e) {
+			e.printStackTrace();
+			tx.rollback();
+		} finally {
+			s.close();
+		}
+		return playlist;
 	}
 
 	/**
@@ -59,8 +95,23 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
 	 */
 	@Override
 	public Playlist getPlaylistByUri(String uri) {
-		// TODO Auto-generated method stub
-		return null;
+		Playlist playlist = null;
+		//Hibernate session
+		Session s = null;
+		//Hibernate Transaction
+		Transaction tx = null;
+		try {
+			s = SortifySessionFactory.getSession();
+			tx = s.beginTransaction();
+			playlist = s.get(Playlist.class, uri);
+			tx.commit();
+		} catch(HibernateException e) {
+			e.printStackTrace();
+			tx.rollback();
+		} finally {
+			s.close();
+		}
+		return playlist;
 	}
 
 	//UPDATE METHODS
@@ -71,20 +122,54 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
 		 */
 	@Override
 	public void updatePlaylist(Playlist playlist) {
-		// TODO Auto-generated method stub
-		
+		//Hibernate session
+		Session s = null;
+		//Hibernate Transaction
+		Transaction tx = null;
+		try {
+			s = SortifySessionFactory.getSession();
+			tx = s.beginTransaction();
+			//Three ways to update: merge(), update(), saveOrUpdate()
+			//merge() updates a persistent entity with fields values from a detached instance
+			//update() transitions a passed object from a detached to persistent; cannot be called on
+			//transient objects
+			//saveOrUpdate() make an object persistent regardless of its state(transient or detached)
+			s.merge(playlist);
+			tx.commit();
+		} catch(HibernateException e) {
+			e.printStackTrace();
+			tx.rollback();
+		} finally {
+			s.close();
+		}	
 	}
 
 	//DELETE METHODS
 	/**
 	 * Delete User Playlist
 	 * 
-	 * @param playlist Playlist User playlist
+	 * @param id int playlist id
 	 */
 	@Override
-	public void deletePlaylist(Playlist playlist) {
-		// TODO Auto-generated method stub
-		
+	public void deletePlaylist(int id) {
+		//Hibernate session
+		Session s = null;
+		//Hibernate Transaction
+		Transaction tx = null;
+		try {
+			s = SortifySessionFactory.getSession();
+			tx = s.beginTransaction();
+			Playlist playlist = s.get(Playlist.class, id);
+			if(playlist != null) {
+				s.delete(playlist);
+			}
+			tx.commit();
+		} catch(HibernateException e) {
+			e.printStackTrace();
+			tx.rollback();
+		} finally {
+			s.close();
+		}	
 	}
 
 }
