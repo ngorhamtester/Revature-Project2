@@ -17,6 +17,6 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
     AppRoutingModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, LoginComponent]
 })
 export class AppModule { }
