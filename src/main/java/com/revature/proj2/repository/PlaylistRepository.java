@@ -60,7 +60,7 @@ public interface PlaylistRepository {
 	/**
 	 * Delete User Playlist
 	 * 
-	 * @param playlist Playlist User playlist
+	 * @param id int playlist id
 	 */
-	void deletePlaylist(Playlist playlist);
+	void deletePlaylist(int id);
 }
