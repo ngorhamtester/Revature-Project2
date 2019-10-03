@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<resources>
+	<string name="url">jdbc:postgresql://database-1.cxe5dkakfibp.us-west-1.rds.amazonaws.com:5432/RevatureProjectDB</string>
+	<string name="username">postgres</string>
+	<string name="password">PGSQLrevolt80</string>
+</resources>
