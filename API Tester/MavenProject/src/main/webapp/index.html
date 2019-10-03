@@ -1,0 +1,96 @@
+<!DocType html>
+<html lang = 'en'>
+  <head>
+  </head>
+
+
+  <body>
+<style>
+.ReqRespLabel { 
+  font-size:30px;
+  font-style:italic;
+  font-weight: 400;
+}
+
+.SubsectionLabel { 
+  font-size:40px;
+  font-weight: 400;
+}
+
+.SectionLabel { 
+  font-family: Impact, Charcoal, sans-serif;
+  font-size:50px;
+  font-weight: 600;
+}
+</style>
+<pre> 
+	<span class="SectionLabel">Stage 1</span><a id="authlink">Log Into Spotify</a>
+		Client_id: <input style="width:800px" id="authcodeid" type="text">
+		response_type: <input value="code" id="authresptype" type="text">
+		redirect_uri: <input value="http://localhost:8080/P2SpotifyApiTester/" style="width:800px" id="authredirecturi" type="text">
+		url: <input style="width:80%" id="authurlstring" type="text" disabled>
+
+	    <span class="SubsectionLabel">Requesting Authoration:</span>
+		<span class="ReqRespLabel">Request:</span> <span id="AuthRequest"></span>
+		<span class="ReqRespLabel">Response:</span><span id="AuthResponse"></span>
+		Code:    <span id="codeElement"></span>
+
+	<span class="SectionLabel">Stage 2</span>	<button type="submit" id="SubmitToken">Submit Token</button>
+
+		Client_id:    <input style="width:800px" id="tokenclientid" type="text">
+		Client_Secret:<input style="width:80%" id="tokensecret" type="text" >
+        <span class="SubsectionLabel">Requesting Token:</span>
+		<span class="ReqRespLabel">Request:</span> <div id="SongRequest:"></div>
+	    	Head:
+			Authorization:<input value=" Basic " style="width:80%" id="tokenAuthorization" type="text" disabled>
+		
+	    	Body:
+			grant_type:	<input value="authorization_code" style="width:80%" id="tokenGrantType" type="text" disabled>
+			code:		<input style="width:80%" id="tokencode" type="text" disabled>
+			redirect_uri:	<input style="width:80%" id="tokenRedirectUri" type="text" disabled>
+
+			url:  <input value="https://accounts.spotify.com/api/token" style="width:80%" id="tokenurl" type="text" disabled>
+	    
+			<span id="TokenRequest"></span>
+
+
+		<span class="ReqRespLabel">Response:</span><div id="S1Response:"></div>
+			<span id="TokenResponse"></span> 
+ 
+	<span class="SectionLabel">Stage 3</span> <button type="submit" id="spotifyApiSubReq">Submit request</button>
+	    <span class="SubsectionLabel">Requesting playlist:</span>
+		<span class="ReqRespLabel">Request:</span>
+	    	Head:
+			AuthorizationPart(TokenType):<input id="spotifyApiTokenType" type="text" disabled>
+			AuthorizationPart(AccessToken):<input style="width:80%" id="spotifyApiAccessToken" type="text" disabled>
+			Authorization:<input value="" style="width:80%" id="spotifyApiAuthorization" type="text" disabled>
+		
+		    URL:  
+			BaseUrl:     <input value="" style="width:80%" id="spotifyApiBaseUrl" type="text" disabled>
+			ApiExtension:<input value="/v1/me/playlists" style="width:80%" id="spotifyApiExtension" type="text">
+		<span class="ReqRespLabel">Response:</span> <div id="s3Response"></div>
+ 
+ 
+ 	<span class="SectionLabel">Stage 4</span> <button type="submit" id="RefreshTokenSubReq">Refresh Token</button>
+	    <span class="SubsectionLabel">Requesting newToken:</span>
+		<span class="ReqRespLabel">Request:</span>
+	    	Head:
+			AuthorizationPart(Client_id):<input id="s4Client_id" type="text" disabled>
+			AuthorizationPart(Client_Secret):<input style="width:80%" id="s4Client_Secret" type="text" disabled>
+			Authorization:<input value="" style="width:80%" id="s4Authorization" type="text" disabled>
+		
+		    Body:  
+			Grant_Type:     <input value="" style="width:80%" id="s4GrantType" type="text" disabled>
+			Refresh_Token:	<input style="width:80%" id="s4RefreshToken" type="text">
+			
+		    URL:
+			TargetUrl:		<input value="" style="width:80%" id="s4TargetUrl" type="text" disabled>
+		<span class="ReqRespLabel">Response:</span> <div id="s4Response"></div>
+ 
+ 
+    </pre>
+    <script src="./JavaScript/SpotifyApiTeste.js"></script>
+
+  </body>
+
+</html>
