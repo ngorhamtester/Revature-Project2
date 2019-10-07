@@ -5,6 +5,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { LoginService } from './services/login.service';
+import { HttpClientModule, HttpClientJsonpModule } from '@angular/common/http';
+
+import  * as $  from 'jquery';
 
 @NgModule({
   declarations: [
@@ -14,9 +18,10 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    HttpClientModule
   ],
-  providers: [],
-  bootstrap: [AppComponent, LoginComponent]
+  providers: [LoginService],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
