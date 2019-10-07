@@ -50,7 +50,7 @@ public interface UserRepository {
 	/**
 	 * Delete User from DB by User 
 	 * 
-	 * @param user User delete Spotify user
+	 * @param int id User id
 	 */
-	void deleteUser(User user);
+	void deleteUser(int id);
 }
