@@ -10,6 +10,7 @@ export class DashboardComponent implements OnInit {
   loggedIn:boolean;
   authorizationCode:string;
   spotifyAPIResponse:object;
+  apiExtension:HTMLInputElement;
   
   constructor(private loginService:LoginService) { }
 
@@ -28,9 +29,9 @@ export class DashboardComponent implements OnInit {
       this.loggedIn = false;
     }
   }
-  askSpotify():object
+  askSpotify():void
   {
-    let apiextension = document.getElementById('dashboardAPIExtension');
-    this.spotifyAPIResponse = this.loginService.getAtAPIExtension(apiextension.value);
+    this.apiExtension = <HTMLInputElement>document.getElementById('dashboardAPIExtension');
+    this.spotifyAPIResponse = this.loginService.getAtAPIExtension(this.apiExtension.value);
   }
 }

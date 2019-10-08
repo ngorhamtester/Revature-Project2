@@ -14,7 +14,8 @@ export class LoginComponent implements OnInit
   authorizationCode:string;
   title:string = 'Sortify';
   constructor(private loginService:LoginService) { }
-
+  // On init, Check if there is an authorization code. If there is, then you 
+  // are logged in. Else, you aren't
   ngOnInit() 
   {
     this.authorizationCode = this.loginService.getcode();
@@ -30,11 +31,10 @@ export class LoginComponent implements OnInit
       console.log(this.authorizationCode);
       this.loggedIn = false;
     }
-    this.basicurl = 'http://www.some_thing/something-._~else/something-even-else.com';
-    this.encurl = this.loginService.toUrlEncodeStr(this.basicurl);
   }
   
-  //Try Logging in
+  // When Login Button is pressed, If we are logged int, Go to dashboard.
+  // Otherwise Send user to spotify to log in.
   tryLoggingIn()
   {
     if(this.loggedIn)

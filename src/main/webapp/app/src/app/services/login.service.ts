@@ -4,10 +4,22 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ThrowStmt } from '@angular/compiler';
 
+//LOGIN SERVICE:
+/*
+ *  The login service handles the 3 stages of the spotify api.
+ *      1) Sending the user to spotify, and getting the code back when they 
+ *            log in.
+ *      2) Sending the code to spotify in exchange for a token
+ *      3) Hitting a Spotify endpoint and getting Json
+ *      4) Refreshing the token
+ *
+ */
+
 @Injectable({
   providedIn: 'root'
 })
 export class LoginService {
+  // VARIABLE DECLARATIONS
   proxy:string = "https://cors-anywhere.herokuapp.com/"
   headers:object;
   body:object;
@@ -15,16 +27,16 @@ export class LoginService {
   baseURL:string;
   redirectUrl:string = "http://localhost:4200";
   clientID:string = "ac97261ac3e74255a9f5b928e6456d9d";
-  clientSecret:string = "ab01f29469964e4ab5e5a7133410b732"
+  clientSecret:string = "ab01f29469964e4ab5e5a7133410b732";
   responseType:string;
-  code:string;
-  url:string;
+  code:string; //Returned when the user logs in.
+  url:string; // Base url and any extension.
   grantType:string;
 
   accessToken:string;
   tokenType:string;
   scope:string[];
-  expireTime:number;
+  expireTime:number; //In seconds of token.
   refreshToken:string;
 
   uriExtension:string;
@@ -33,6 +45,9 @@ export class LoginService {
 
   constructor(private router:Router, private activatedRoute:ActivatedRoute, private http:HttpClient) 
   { }
+
+
+  //Convert A String to be URL Encoded.
   toUrlEncodeStr(str:string):string 
   {
     var code, i, len;
@@ -64,6 +79,8 @@ export class LoginService {
     }
     return retString;
   };
+
+  //Convert an object to be URL Encoded.
   toUrlEncodeObj(obj:object):string
   {
     let encodedString = '';
@@ -83,8 +100,8 @@ export class LoginService {
     return encodedString;
   }
 
-
-
+  // Redirect User to Spotify Login. If successful, they will be redirected to 
+  // our login page with a code appended to the url.
   login() 
   {
     this.baseURL = "https://accounts.spotify.com/authorize";
@@ -97,31 +114,41 @@ export class LoginService {
     this.router.navigate(['/SpotifyLogin', { externalUrl: this.url }], 
     {skipLocationChange: true});
   }
+
+  // 
   navigate( path:string, authcode:string) 
   {
     this.router.navigate([path, {code: authcode}]);
   }
   
+  //When User gets back, check the url for for a Code or error.
   getNewCode()
   {    
     //Check url for code from login.
     this.activatedRoute.queryParams.subscribe(params =>
       {
+        //User Accepted
         if(params['code'])
         {
           this.code = params['code'];
           this.getNewToken();
         }
+        //User did Not Accept
+        else if(params['error'] == 'access_denied')
+        {
+          console.log("User refused to let us use their acc.");
+        }
       });
   }
-
+  // Update code if there is a recent one appended in the URL. Then Return the
+  // Code being stored in the service.
   getcode()
   {
     this.getNewCode();
     return this.code;
   }
 
-
+  //Get a token, using the code returned when the user logged in.
   getNewToken()
   {
     this.grantType = "authorization_code";
@@ -141,17 +168,23 @@ export class LoginService {
       'code': this.code,
       'redirect_uri': this.redirectUrl
     };
-    this.http.post<any>(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers).subscribe(responseJson => 
+    //Send request
+    this.http.post<any>(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers)
+        .subscribe(responseJson => 
     {
       this.accessToken = responseJson.access_token;
       this.tokenType = responseJson.token_type;
       this.scope = responseJson.scope;
       this.expireTime = responseJson.expires_in;
       this.refreshToken = responseJson.refresh_token;
+    }, error => 
+    {
+      console.log(error.error);
+      console.log(error.error.message);
     });
   }
 
-
+  // Use the token to make an API call to Spotify.
   getAtAPIExtension(extension:string):object
   {
     this.baseURL = "https://api.spotify.com";
@@ -171,7 +204,8 @@ export class LoginService {
     // });
 
   }
-
+  // When your token expires, this function uses the refresh token to get a 
+  // new token.
   getRefreshedToken()
   {
     this.grantType = "refresh_token";
