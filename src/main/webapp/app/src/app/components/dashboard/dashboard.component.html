@@ -1,1 +1,14 @@
 <p>dashboard works!</p>
+
+
+<p>DashBoard-LoggedIn:{{loggedIn}}</p><br>
+<p>DashBoard-Authorization Code:{{authorizationCode}}</p><br>
+<p>Input your spotify endpoint here and click submit to get json back.</p>
+<input type="text" id="dashboardAPIExtension"> <button type="button" class="button" (click)="askSpotify()">Submit</button>
+
+<pre>
+
+
+        Response:{{spotifyAPIResponse}}
+
+</pre>
