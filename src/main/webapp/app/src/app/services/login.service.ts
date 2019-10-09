@@ -25,7 +25,7 @@ export class LoginService {
   body:object;
 
   baseURL:string;
-  redirectUrl:string = "http://localhost:4200";
+  redirectUrl:string = "http://localhost:4200/dashboard";
   clientID:string = "ac97261ac3e74255a9f5b928e6456d9d";
   clientSecret:string = "ab01f29469964e4ab5e5a7133410b732";
   responseType:string;
@@ -115,7 +115,7 @@ export class LoginService {
     {skipLocationChange: true});
   }
 
-  // 
+  // Helper function for navigating.
   navigate( path:string, authcode:string) 
   {
     this.router.navigate([path, {code: authcode}]);
@@ -181,6 +181,7 @@ export class LoginService {
     {
       console.log(error.error);
       console.log(error.error.message);
+      this.router.navigate(['/']);
     });
   }
 
@@ -195,14 +196,12 @@ export class LoginService {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': this.tokenType + " " + this.accessToken
     })};
-    console.log("Look, Here is my access Token:" + this.accessToken);
-    return this.http.get<any>(this.proxy + this.baseURL + extension, this.headers)//.subscribe(responseJson => 
-    // {
-    //   this.jsonResponse = responseJson;
-    //   console.log("RESPONSE OBJECTIN = "+this.jsonResponse);
-    //   return this.jsonResponse;
-    // });
-
+    return this.http.get<any>(this.proxy + this.baseURL + extension, this.headers).subscribe(error => 
+    {
+      console.log(error.error);
+      console.log(error.error.message);
+      this.router.navigate(['/']);
+    });
   }
   // When your token expires, this function uses the refresh token to get a 
   // new token.
@@ -229,6 +228,11 @@ export class LoginService {
       this.scope = responseJson.scope;
       this.expireTime = responseJson.expires_in;
       console.log(this.accessToken);
+    }, error => 
+    {
+      console.log(error.error);
+      console.log(error.error.message);
+      this.router.navigate(['/']);
     });
   }
 }
