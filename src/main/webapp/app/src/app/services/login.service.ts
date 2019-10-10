@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Router, ActivatedRoute, Params } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { ThrowStmt } from '@angular/compiler';
+import { map, catchError } from 'rxjs/operators';
+
 
 //LOGIN SERVICE:
 /*
@@ -18,7 +20,8 @@ import { ThrowStmt } from '@angular/compiler';
 @Injectable({
   providedIn: 'root'
 })
-export class LoginService {
+export class LoginService 
+{
   // VARIABLE DECLARATIONS
   proxy:string = "https://cors-anywhere.herokuapp.com/"
   headers:object;
@@ -43,6 +46,10 @@ export class LoginService {
 
   jsonResponse:object;
 
+  // httpRequestCntr:number; // This is an itterator used to count the number of 
+  //                //fails on the get request, to determine when to stop trying.
+  jsonResponseObj:any; // Catches the respone for error checking.
+                          // If there was an error, we may retry.
   constructor(private router:Router, private activatedRoute:ActivatedRoute, private http:HttpClient) 
   { }
 
@@ -100,6 +107,55 @@ export class LoginService {
     return encodedString;
   }
 
+  //ToDo Every Time HttpRequest for a new token fails.
+  onFailGetNewToken(error:any)
+  {
+    console.log("error");
+    console.log(error.error);
+    console.log(error.error.message);
+    this.accessToken = "";
+    this.refreshToken = "";
+    this.code = "";
+  }
+  
+  //ToDo Every Time HttpRequest for a new token succeeds.
+  onSuccessGetNewToken(value:any)
+  {
+    this.accessToken = value.access_token;
+    this.tokenType = value.token_type;
+    this.scope = value.scope;
+    this.expireTime = value.expires_in;
+    this.refreshToken = value.refresh_token;
+  }
+
+  //ToDo Every Time HttpRequest for a API endpoint fails.
+  onFailGetAtAPIExtension(error:any)
+  {
+    console.log("error");
+    console.log(error.error);
+    console.log(error.error.message);
+    this.accessToken = "";
+  }  
+  
+  //ToDo Every Time HttpRequest for a refreshed token fails.
+  onFailGetRefreshedToken(error:any)
+  {
+    console.log("error");
+    console.log(error.error);
+    console.log(error.error.message);
+    this.accessToken = "";
+    this.refreshToken = "";
+  }
+  
+  //ToDo Every Time HttpRequest for a refreshed token succeeds.
+  onSuccessGetRefreshedToken(value:any)
+  {
+    this.accessToken = value.access_token;
+    this.tokenType = value.token_type;
+    this.scope = value.scope;
+    this.expireTime = value.expires_in;
+  }
+
   // Redirect User to Spotify Login. If successful, they will be redirected to 
   // our login page with a code appended to the url.
   login() 
@@ -131,7 +187,20 @@ export class LoginService {
         if(params['code'])
         {
           this.code = params['code'];
-          this.getNewToken();
+          this.getNewToken().subscribe(responseJson => 
+            {
+              this.accessToken = responseJson.access_token;
+              this.tokenType = responseJson.token_type;
+              this.scope = responseJson.scope;
+              this.expireTime = responseJson.expires_in;
+              this.refreshToken = responseJson.refresh_token;
+            }, error => 
+            {
+              console.log(error.error);
+              console.log(error.error.message);
+              this.code = "";
+              this.router.navigate(['/']);
+            });
         }
         //User did Not Accept
         else if(params['error'] == 'access_denied')
@@ -149,7 +218,7 @@ export class LoginService {
   }
 
   //Get a token, using the code returned when the user logged in.
-  getNewToken()
+  getNewToken():Observable<any>
   {
     this.grantType = "authorization_code";
     this.baseURL = "https://accounts.spotify.com/api/token";
@@ -160,8 +229,6 @@ export class LoginService {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic '+ btoa(this.clientID+":"+this.clientSecret)
     })};
-    
-    console.log(this.headers['headers']);
     //Set Body
     this.body = {
       'grant_type': this.grantType,
@@ -169,24 +236,12 @@ export class LoginService {
       'redirect_uri': this.redirectUrl
     };
     //Send request
-    this.http.post<any>(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers)
-        .subscribe(responseJson => 
-    {
-      this.accessToken = responseJson.access_token;
-      this.tokenType = responseJson.token_type;
-      this.scope = responseJson.scope;
-      this.expireTime = responseJson.expires_in;
-      this.refreshToken = responseJson.refresh_token;
-    }, error => 
-    {
-      console.log(error.error);
-      console.log(error.error.message);
-      this.router.navigate(['/']);
-    });
+    return this.http.post(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers)
   }
 
+
   // Use the token to make an API call to Spotify.
-  getAtAPIExtension(extension:string):object
+  getAtAPIExtension(extension:string):Observable<object>
   {
     this.baseURL = "https://api.spotify.com";
 
@@ -194,18 +249,16 @@ export class LoginService {
     this.headers = {headers: new HttpHeaders(
     {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': this.tokenType + " " + this.accessToken
+      'Authorization': this.tokenType + " " + this.accessToken,
+      'response_Type': 'json'
     })};
-    return this.http.get<any>(this.proxy + this.baseURL + extension, this.headers).subscribe(error => 
-    {
-      console.log(error.error);
-      console.log(error.error.message);
-      this.router.navigate(['/']);
-    });
+    return this.jsonResponseObj = this.http.get(this.proxy + this.baseURL + extension, this.headers)
   }
+
+
   // When your token expires, this function uses the refresh token to get a 
   // new token.
-  getRefreshedToken()
+  getRefreshedToken():Observable<object>
   {
     this.grantType = "refresh_token";
     this.baseURL = "https://accounts.spotify.com/api/token";
@@ -221,18 +274,34 @@ export class LoginService {
       'grant_type': this.grantType,
       'refresh_token': this.refreshToken
     };
-    this.http.post<any>(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers).subscribe(responseJson => 
-    {
-      this.accessToken = responseJson.access_token;
-      this.tokenType = responseJson.token_type;
-      this.scope = responseJson.scope;
-      this.expireTime = responseJson.expires_in;
-      console.log(this.accessToken);
-    }, error => 
-    {
-      console.log(error.error);
-      console.log(error.error.message);
-      this.router.navigate(['/']);
-    });
+    return this.http.post<any>(this.proxy + this.baseURL, this.toUrlEncodeObj(this.body), this.headers)//.subscribe(responseJson => 
+    // {
+    //   this.accessToken = responseJson.access_token;
+    //   this.tokenType = responseJson.token_type;
+    //   this.scope = responseJson.scope;
+    //   this.expireTime = responseJson.expires_in;
+    //   console.log(this.accessToken);
+    // }, error => 
+    // {
+    //   //If refresh token fails, try get a new token/refresh token with code.
+    //   console.log(error.error);
+    //   console.log(error.error.message);
+    //   this.accessToken = "";
+    //   this.refreshToken = "";
+    //   this.getNewToken().subscribe(responseJson => 
+    //     {
+    //       this.accessToken = responseJson.access_token;
+    //       this.tokenType = responseJson.token_type;
+    //       this.scope = responseJson.scope;
+    //       this.expireTime = responseJson.expires_in;
+    //       this.refreshToken = responseJson.refresh_token;
+    //     }, error => 
+    //     {
+    //       console.log(error.error);
+    //       console.log(error.error.message);
+    //       this.code = "";
+    //       this.router.navigate(['/']);
+    //     });
+    // });
   }
 }
