@@ -8,8 +8,6 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LoginService } from './services/login.service';
 import { HttpClientModule, HttpClientJsonpModule } from '@angular/common/http';
 
-import  * as $  from 'jquery';
-
 @NgModule({
   declarations: [
     AppComponent,
