@@ -20,7 +20,7 @@ export class UtilService {
   DisplayJson(JsonObj:any, ContainerElement:HTMLElement, depth:number)
   {
     //console.log(typeof JsonObj)
-    if(typeof JsonObj == "object" && JsonObj != null && depth !=0)
+    if(typeof JsonObj == "object" && JsonObj != null && depth != 0)
     {
       let ul1 = document.createElement('ul');
         //For each element in the object
