@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LoginService } from 'src/app/services/login.service';
 import { UtilService } from 'src/app/services/util.service';
+import { Router, ActivatedRoute, Params } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,12 +15,50 @@ export class DashboardComponent implements OnInit
   spotifyAPIResponse:object;
   spotifyJsonResponse:any;
   apiExtension:HTMLInputElement;
-  router: any;
   
-  constructor(private loginService:LoginService, private utilService:UtilService) { }
+  constructor(private loginService:LoginService, private activatedRoute:ActivatedRoute, private utilService:UtilService, private router:Router) { }
 
   ngOnInit() {
-    this.authorizationCode = this.loginService.getcode();
+    console.log("oninitcalled")
+    //this.authorizationCode = this.loginService.getcode();
+    if(!this.loginService.accessToken) {
+        this.activatedRoute.queryParams.subscribe(params =>
+      {
+        //User Accepted
+        if(params['code'])
+        {
+          this.loginService.code = params['code'];
+          this.loginService.getNewToken().subscribe(responseJson => 
+            {
+              this.loginService.accessToken = responseJson.access_token;
+              this.loginService.tokenType = responseJson.token_type;
+              this.loginService.scope = responseJson.scope;
+              this.loginService.expireTime = responseJson.expires_in;
+              this.loginService.refreshToken = responseJson.refresh_token;
+              console.log("Hey! I got the token!");
+              this.router.navigate(['/dashboard']);
+
+
+            }, error => 
+            {
+              console.log(error.error);
+              console.log(error.error.message);
+              this.loginService.code = "";
+              this.router.navigate(['/']);
+            });
+        }
+        //User did Not Accept
+        else if(params['error'] == 'access_denied')
+        {
+          console.log("User refused to let us use their acc.");
+        }
+      });
+      }
+      else
+      {
+       //ajax calls
+       console.log(this.loginService.accessToken);
+      }
     if(this.authorizationCode)
     {
       console.log("got a code");
@@ -30,9 +69,10 @@ export class DashboardComponent implements OnInit
       console.log("need a code");
       this.loggedIn = false;
     }
+   
   }
  
- 
+ getaccesstoken = ():void => {console.log(this.loginService.accessToken)}
   // Function that is run on the returned object when askSpotify Hits an endpoint.
   // This function must be defined using arrow notation to avoid referencing the
   // Wrong "this" while setting your variables.
